@@ -5,7 +5,6 @@ void main() {
   testWidgets('config basic...', (tester) async {
     var config = new ImuConfig(null, aAccThreshold: 5.0);
     //print(config);
-    expect(config.getSampleRate(), 50);
     expect(config.getAccThreshold(), 5.0);
   });
 }

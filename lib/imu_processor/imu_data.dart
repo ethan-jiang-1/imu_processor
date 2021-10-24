@@ -5,6 +5,7 @@ class ImuData {
   int _mUnixTimeInSecCur = -1;
   int _mUnixTimeInSecEnd = -1;
   int _mTick = 0;
+  bool _mGravityRemoved = false;
 
   List<List<double>> _mLstImu = <List<double>>[];
 
@@ -51,10 +52,19 @@ class ImuData {
     return true;
   }
 
+  bool removeGravity() {
+    if (_mGravityRemoved) {
+      return true;
+    }
+    
+    _mGravityRemoved = true;
+    return true;
+  }
+
   List<List<double>> getLstImu() {
     return _mLstImu;
   }
-  
+
   int getTimeStampStart() {
     return _mUnixTimeInSecStart;
   }
@@ -65,5 +75,9 @@ class ImuData {
 
   int getTimeStampEnd() {
     return _mUnixTimeInSecEnd;
+  }
+
+  int getSampleRate() {
+    return _mSampleRate;
   }
 }
