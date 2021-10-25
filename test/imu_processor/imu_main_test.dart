@@ -11,16 +11,23 @@ void logRecord(
   cnt_record += 1;
 }
 
-void feed_data(data, num_points) {
+void feed_data(ImuData data, int num_points) {
   for (int i = 0; i < num_points; i++) {
     int ts = (i / 10).toInt();
     int hn = (i / 100).toInt();
+    int sign = 1;
+    if (i % 2 == 1) {
+      sign = -1;
+    }
     if (hn % 2 == 0) {
-      data.feed(ts, 1.0, 1.0, 1.0, 1.0 + i, 1.0 + i, 1.0 + i);
+      data.feed(
+          ts, sign * 1.0, sign * 1.0, sign * 1.0, 1.0 + i, 1.0 + i, 1.0 + i);
     } else {
-      data.feed(ts, 0.5, 0.5, 0.5, 1.0 + i, 1.0 + i, 1.0 + i);
+      data.feed(
+          ts, sign * 0.5, sign * 0.5, sign * 0.5, 1.0 + i, 1.0 + i, 1.0 + i);
     }
   }
+  data.removeGravity();
 }
 
 void main() {

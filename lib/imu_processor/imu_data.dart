@@ -6,6 +6,7 @@ class ImuData {
   int _mUnixTimeInSecEnd = -1;
   int _mTick = 0;
   bool _mGravityRemoved = false;
+  String _mErr = "";
 
   List<List<double>> _mLstImu = <List<double>>[];
 
@@ -34,12 +35,22 @@ class ImuData {
 
   bool feed(int unixTimestampInSec, double acceX, double acceY, double acceZ,
       double gyroX, double gyroY, double gyroZ) {
+    if (!_mErr.isEmpty) {
+      return false;      
+    }
     if (!checkDataAcceptable(unixTimestampInSec)) {
-      print("ERROR: timestamp does not match with previous group");
+      _mErr = "NoNewDataAccecpt_TimeStampNotAligned";
+      print("ERROR: " + _mErr);
       return false;
     }
     if (_mTick >= _mSampleRate) {
-      print("ERROR: the total number of data accepted in slot is overflowed");
+      _mErr = "NoNewDataAccept_SlotInTheSecIsFull";
+      print("ERROR: " + _mErr);
+      return false;
+    }
+    if (_mGravityRemoved) {
+      _mErr = "NoNewDataAccecpt_GravityFiltered";
+      print("ERROR: " + _mErr);
       return false;
     }
 
@@ -56,7 +67,7 @@ class ImuData {
     if (_mGravityRemoved) {
       return true;
     }
-    
+
     _mGravityRemoved = true;
     return true;
   }

@@ -9,10 +9,25 @@ class ImuProcessor {
     _mImuConfig = config;
   }
 
-  int getMovmentLevel(List<double> imu) {
-    double ax = imu[0];
-    double ay = imu[1];
-    double az = imu[2];
+  int getMovmentLevel(List<List<double>> lstImu, int ndx) {
+    double ax = 0;
+    double ay = 0;
+    double az = 0;
+
+    int cnt = 0;
+    for (int i = -1; i < 2; i++) {
+      int indx = ndx + i;
+      if ((indx >= 0) && (indx < lstImu.length)) {
+        ax += lstImu[indx][0].abs();
+        ay += lstImu[indx][1].abs();
+        az += lstImu[indx][2].abs();
+        cnt += 1;
+      }
+    }
+    ax = ax / cnt;
+    ay = ay / cnt;
+    az = az / cnt;
+
     double acct = _mImuConfig!.getAccThreshold();
 
     double accr = sqrt(ax * ax + ay * ay + az * az);
@@ -22,6 +37,20 @@ class ImuProcessor {
     return 0;
   }
 
+  double cal_kilocalorie(List<List<double>> lstImu, int mvChunkStart,
+      int mvChunkEnd, int sampleRate) {
+    double durationInSec = (mvChunkEnd - mvChunkStart) / sampleRate;
+    double burnKiloCalorie = durationInSec;
+    return burnKiloCalorie;
+  }
+
+  double cal_distance(List<List<double>> lstImu, int mvChunkStart,
+      int mvChunkEnd, int sampleRate) {
+    double durationInSec = (mvChunkEnd - mvChunkStart) / sampleRate;
+    double distanceInMeter = durationInSec;
+    return distanceInMeter;
+  }
+
   bool compute_move_chunk(List<List<double>> lstImu, int mvChunkStart,
       int mvChunkEnd, int sampleRate) {
     double durationInSec = (mvChunkEnd - mvChunkStart) / sampleRate;
@@ -29,12 +58,14 @@ class ImuProcessor {
     DateTime dt =
         DateTime.fromMicrosecondsSinceEpoch(lstImu[mvChunkStart][6].toInt());
 
-    double distanceInMeter = durationInSec;
-    double burnKiloCalorie = distanceInMeter;
+    double distanceInMeter =
+        cal_distance(lstImu, mvChunkStart, mvChunkEnd, sampleRate);
+    double burnKiloCalorie =
+        cal_kilocalorie(lstImu, mvChunkStart, mvChunkEnd, sampleRate);
 
-    ImuRecordPump? irp = _mImuConfig!.getImuRecordPump();
-    if (irp != null) {
-      irp(dt, durationInSec.toInt(), distanceInMeter, burnKiloCalorie);
+    ImuRecordPump? irpCallback = _mImuConfig!.getImuRecordPump();
+    if (irpCallback != null) {
+      irpCallback(dt, durationInSec.toInt(), distanceInMeter, burnKiloCalorie);
     }
     return true;
   }
@@ -42,14 +73,15 @@ class ImuProcessor {
   bool compute_move_sequence(
       List<List<double>> lstImu, int mvNdxStart, int mvNdxEnd, int sampleRate) {
     int chunkCount = _mImuConfig!.getYieldDataSecGap() * sampleRate;
+    int minSamples = _mImuConfig!.getYieldMinSamples();
 
     int seqCount = mvNdxEnd - mvNdxStart;
-    if (seqCount < 0) {
-      print("ERROR: seqCount < 0 ?!");
+    if (seqCount < minSamples) {
+      print("WARNING: seqCount " + seqCount.toString() + " < " + minSamples.toString());
       return false;
     }
-    for (int i = 0; i < seqCount; i += chunkCount) {
-      int chunkStart = i + mvNdxStart;
+    for (int ndx = 0; ndx < seqCount; ndx += chunkCount) {
+      int chunkStart = ndx + mvNdxStart;
       int chunkEnd = chunkStart + chunkCount;
       if (chunkEnd > mvNdxEnd) {
         chunkEnd = mvNdxEnd;
@@ -69,29 +101,34 @@ class ImuProcessor {
     int mvNdxStart = -1;
     int mvNdxEnd = -1;
 
-    for (int i = 0; i < len_data; i++) {
-      List<double> imu7 = lstImu[i];
-      int mv = getMovmentLevel(imu7);
+    int chunkCount = _mImuConfig!.getYieldDataSecGap() * sampleRate;
+
+    for (int ndx = 0; ndx < len_data; ndx++) {
+      int mv = getMovmentLevel(lstImu, ndx);
       if (isStill) {
         if (mv > 0) {
           // still -> move
           isStill = false;
           lastMv = mv;
-          mvNdxStart = i;
+          mvNdxStart = ndx;
         } else {
           // still -> still
         }
       } else {
         if (mv == 0) {
           // move -> still
-          mvNdxEnd = i;
+          mvNdxEnd = ndx;
           compute_move_sequence(lstImu, mvNdxStart, mvNdxEnd, sampleRate);
           mvNdxStart = -1;
           mvNdxEnd = -1;
           isStill = true;
         } else {
           // move -> move
-
+          if (ndx - mvNdxStart >= chunkCount) {
+            mvNdxEnd = ndx;
+            compute_move_sequence(lstImu, mvNdxStart, mvNdxEnd, sampleRate);
+            mvNdxStart = ndx;
+          }
         }
       }
     }
