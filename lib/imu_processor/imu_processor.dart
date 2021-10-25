@@ -77,7 +77,10 @@ class ImuProcessor {
 
     int seqCount = mvNdxEnd - mvNdxStart;
     if (seqCount < minSamples) {
-      print("WARNING: seqCount " + seqCount.toString() + " < " + minSamples.toString());
+      print("WARNING: seqCount " +
+          seqCount.toString() +
+          " < " +
+          minSamples.toString());
       return false;
     }
     for (int ndx = 0; ndx < seqCount; ndx += chunkCount) {
@@ -91,7 +94,7 @@ class ImuProcessor {
     return true;
   }
 
-  bool process(ImuData imuData) {
+  bool scanImuToYieldRecords(ImuData imuData) {
     List<List<double>> lstImu = imuData.getLstImu();
     int sampleRate = imuData.getSampleRate();
     int len_data = lstImu.length;
@@ -137,7 +140,15 @@ class ImuProcessor {
         compute_move_sequence(lstImu, mvNdxStart, len_data - 1, sampleRate);
       }
     }
+    return true;
+  }
 
+  bool process(ImuData imuData) {
+    if (_mImuConfig!.getRemoveGravity()) {
+      imuData.removeAverageGravity();
+    }
+
+    scanImuToYieldRecords(imuData);
     return true;
   }
 }

@@ -4,8 +4,9 @@ typedef ImuRecordPump = void Function(
 class ImuConfig {
   int _mYieldDataSecGap = 10; //yeild in sec
   int _mYieldMinSamples = 3; //yield min samples
-  double _mAccMagicThreshold =
-      1.0; //acc trigger still -> movement (need to be test and backfill)
+  double _mAccMagicThreshold = 1.0; //acc trigger still -> movement
+  bool _mRemoveGravity = true; //should gravity in imu removed?
+
   ImuRecordPump? _imuRecordPump;
 
   ImuConfig(ImuRecordPump? aImuRecordPump,
@@ -27,6 +28,10 @@ class ImuConfig {
 
   double getAccThreshold() {
     return _mAccMagicThreshold;
+  }
+
+  bool getRemoveGravity() {
+    return _mRemoveGravity;
   }
 
   ImuRecordPump? getImuRecordPump() {
