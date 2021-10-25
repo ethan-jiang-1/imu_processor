@@ -36,7 +36,7 @@ class ImuData {
   bool feed(int unixTimestampInSec, double acceX, double acceY, double acceZ,
       double gyroX, double gyroY, double gyroZ) {
     if (!_mErr.isEmpty) {
-      return false;      
+      return false;
     }
     if (!checkDataAcceptable(unixTimestampInSec)) {
       _mErr = "NoNewDataAccecpt_TimeStampNotAligned";
@@ -90,5 +90,13 @@ class ImuData {
 
   int getSampleRate() {
     return _mSampleRate;
+  }
+
+  bool getGravityRemoved() {
+    return _mGravityRemoved;
+  }
+
+  String getErr() {
+    return _mErr;
   }
 }
