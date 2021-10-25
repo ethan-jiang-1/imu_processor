@@ -3,7 +3,7 @@ import 'package:imu_processor/imu_processor/imu_data.dart';
 
 void main() {
   testWidgets('imu data feed groupcheck0...', (tester) async {
-    ImuData idat = ImuData(50);
+    ImuData idat = ImuData();
     //print(idat);
 
     expect(idat.checkDataAcceptable(0), true);
@@ -17,7 +17,7 @@ void main() {
   });
 
   testWidgets('imu data feed groupcheck1...', (tester) async {
-    ImuData idat = ImuData(50);
+    ImuData idat = ImuData();
     //print(idat);
 
     expect(idat.checkDataAcceptable(5), true);
@@ -31,7 +31,7 @@ void main() {
   });
 
   testWidgets('imu data feed one_group with 2 items...', (tester) async {
-    ImuData idat = ImuData(50);
+    ImuData idat = ImuData();
     //print(idat);
 
     idat.feed(0, 1.0, 1.1, 1.2, 2.0, 2.1, 2.2);
@@ -42,7 +42,7 @@ void main() {
     expect(imu.length, 2);
   });
   testWidgets('imu data feed one_goupe with 20 items ...', (tester) async {
-    ImuData idat = ImuData(50);
+    ImuData idat = ImuData();
     //print(idat);
 
     for (int i = 0; i < 10; i++) {
@@ -55,10 +55,10 @@ void main() {
     expect(imu.length, 20);
   });
   testWidgets('imu data feed 40 items not in same group  ...', (tester) async {
-    ImuData idat = ImuData(50);
-    var ret0;
-    var ret1;
-    var ret2;
+    ImuData idat = ImuData();
+    bool ret0 = false;
+    bool ret1 = false;
+    bool ret2 = false;
     //print(idat);
     for (int i = 0; i < 10; i++) {
       ret0 = idat.feed(0, 1.0 + i, 1.1, 1.2, 2.0, 2.1, 2.2);

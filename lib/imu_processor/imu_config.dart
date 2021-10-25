@@ -3,14 +3,14 @@ typedef ImuRecordPump = void Function(
 
 class ImuConfig {
   int _mYieldDataSecGap = 10; //yeild in sec
-  int _mYieldMinSamples = 3; //yield min samples
   double _mAccMagicThreshold = 1.0; //acc trigger still -> movement
-  bool _mRemoveGravity = true; //should gravity in imu removed?
+  final int _mYieldMinSamples = 3; //yield min samples
+  final bool _mRemoveGravity = true; //should gravity in imu removed?
 
   ImuRecordPump? _imuRecordPump;
 
   ImuConfig(ImuRecordPump? aImuRecordPump,
-      {aYieldDataSecGap = 10, aAccThreshold = 1.0}) {
+      {aYieldDataSecGap = 10, aAccThreshold = 1.0, a}) {
     if (aImuRecordPump != null) {
       _imuRecordPump = aImuRecordPump;
     }

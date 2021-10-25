@@ -37,21 +37,21 @@ class ImuProcessor {
     return 0;
   }
 
-  double cal_kilocalorie(List<List<double>> lstImu, int mvChunkStart,
+  double calKilocalorie(List<List<double>> lstImu, int mvChunkStart,
       int mvChunkEnd, int sampleRate) {
     double durationInSec = (mvChunkEnd - mvChunkStart) / sampleRate;
     double burnKiloCalorie = durationInSec;
     return burnKiloCalorie;
   }
 
-  double cal_distance(List<List<double>> lstImu, int mvChunkStart,
+  double calDistance(List<List<double>> lstImu, int mvChunkStart,
       int mvChunkEnd, int sampleRate) {
     double durationInSec = (mvChunkEnd - mvChunkStart) / sampleRate;
     double distanceInMeter = durationInSec;
     return distanceInMeter;
   }
 
-  bool compute_move_chunk(List<List<double>> lstImu, int mvChunkStart,
+  bool computeMoveChunk(List<List<double>> lstImu, int mvChunkStart,
       int mvChunkEnd, int sampleRate) {
     double durationInSec = (mvChunkEnd - mvChunkStart) / sampleRate;
 
@@ -59,9 +59,9 @@ class ImuProcessor {
         DateTime.fromMicrosecondsSinceEpoch(lstImu[mvChunkStart][6].toInt());
 
     double distanceInMeter =
-        cal_distance(lstImu, mvChunkStart, mvChunkEnd, sampleRate);
+        calDistance(lstImu, mvChunkStart, mvChunkEnd, sampleRate);
     double burnKiloCalorie =
-        cal_kilocalorie(lstImu, mvChunkStart, mvChunkEnd, sampleRate);
+        calKilocalorie(lstImu, mvChunkStart, mvChunkEnd, sampleRate);
 
     ImuRecordPump? irpCallback = _mImuConfig!.getImuRecordPump();
     if (irpCallback != null) {
@@ -70,13 +70,14 @@ class ImuProcessor {
     return true;
   }
 
-  bool compute_move_sequence(
+  bool computeMoveSequence(
       List<List<double>> lstImu, int mvNdxStart, int mvNdxEnd, int sampleRate) {
     int chunkCount = _mImuConfig!.getYieldDataSecGap() * sampleRate;
     int minSamples = _mImuConfig!.getYieldMinSamples();
 
     int seqCount = mvNdxEnd - mvNdxStart;
     if (seqCount < minSamples) {
+      // ignore: avoid_print
       print("WARNING: seqCount " +
           seqCount.toString() +
           " < " +
@@ -89,7 +90,7 @@ class ImuProcessor {
       if (chunkEnd > mvNdxEnd) {
         chunkEnd = mvNdxEnd;
       }
-      compute_move_chunk(lstImu, chunkStart, chunkEnd, sampleRate);
+      computeMoveChunk(lstImu, chunkStart, chunkEnd, sampleRate);
     }
     return true;
   }
@@ -97,22 +98,22 @@ class ImuProcessor {
   bool scanImuToYieldRecords(ImuData imuData) {
     List<List<double>> lstImu = imuData.getLstImu();
     int sampleRate = imuData.getSampleRate();
-    int len_data = lstImu.length;
+    int lenData = lstImu.length;
 
     bool isStill = true;
-    int lastMv = 0;
+    //int lastMv = 0;
     int mvNdxStart = -1;
     int mvNdxEnd = -1;
 
     int chunkCount = _mImuConfig!.getYieldDataSecGap() * sampleRate;
 
-    for (int ndx = 0; ndx < len_data; ndx++) {
+    for (int ndx = 0; ndx < lenData; ndx++) {
       int mv = getMovmentLevel(lstImu, ndx);
       if (isStill) {
         if (mv > 0) {
           // still -> move
           isStill = false;
-          lastMv = mv;
+          //lastMv = mv;
           mvNdxStart = ndx;
         } else {
           // still -> still
@@ -121,7 +122,7 @@ class ImuProcessor {
         if (mv == 0) {
           // move -> still
           mvNdxEnd = ndx;
-          compute_move_sequence(lstImu, mvNdxStart, mvNdxEnd, sampleRate);
+          computeMoveSequence(lstImu, mvNdxStart, mvNdxEnd, sampleRate);
           mvNdxStart = -1;
           mvNdxEnd = -1;
           isStill = true;
@@ -129,7 +130,7 @@ class ImuProcessor {
           // move -> move
           if (ndx - mvNdxStart >= chunkCount) {
             mvNdxEnd = ndx;
-            compute_move_sequence(lstImu, mvNdxStart, mvNdxEnd, sampleRate);
+            computeMoveSequence(lstImu, mvNdxStart, mvNdxEnd, sampleRate);
             mvNdxStart = ndx;
           }
         }
@@ -137,7 +138,7 @@ class ImuProcessor {
     }
     if (!isStill) {
       if (mvNdxStart != -1) {
-        compute_move_sequence(lstImu, mvNdxStart, len_data - 1, sampleRate);
+        computeMoveSequence(lstImu, mvNdxStart, lenData - 1, sampleRate);
       }
     }
     return true;

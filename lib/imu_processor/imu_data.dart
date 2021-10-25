@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_final_fields
+
 class ImuData {
   int _mSampleRate = 50;
 
@@ -10,7 +12,7 @@ class ImuData {
 
   List<List<double>> _mLstImu = <List<double>>[];
 
-  ImuData(int aSampleRate) {
+  ImuData({aSampleRate = 50}) {
     _mSampleRate = aSampleRate;
   }
 
@@ -35,21 +37,24 @@ class ImuData {
 
   bool feed(int unixTimestampInSec, double acceX, double acceY, double acceZ,
       double gyroX, double gyroY, double gyroZ) {
-    if (!_mErr.isEmpty) {
+    if (_mErr.isNotEmpty) {
       return false;
     }
     if (!checkDataAcceptable(unixTimestampInSec)) {
       _mErr = "NoNewDataAccecpt_TimeStampNotAligned";
+      // ignore: avoid_print
       print("ERROR: " + _mErr);
       return false;
     }
     if (_mTick >= _mSampleRate) {
       _mErr = "NoNewDataAccept_SlotInTheSecIsFull";
+      // ignore: avoid_print
       print("ERROR: " + _mErr);
       return false;
     }
     if (_mGravityRemoved) {
       _mErr = "NoNewDataAccecpt_GravityFiltered";
+      // ignore: avoid_print
       print("ERROR: " + _mErr);
       return false;
     }

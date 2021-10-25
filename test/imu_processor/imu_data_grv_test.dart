@@ -1,12 +1,14 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imu_processor/imu_processor/imu_data.dart';
 
-void feed_data_var(ImuData data, int num_points, int var_mode) {
-  for (int i = 0; i < num_points; i++) {
-    int ts = (i / 10).toInt();
-    int hn = (i / 100).toInt();
+void feedDataVar(ImuData data, int numPoints, int varMode) {
+  for (int i = 0; i < numPoints; i++) {
+    int ts = i ~/ 10;
+    int hn = i ~/ 100;
     int sign = 1;
-    if (i % var_mode == 1) {
+    if (i % varMode == 1) {
       sign = -1;
     }
     if (hn % 2 == 0) {
@@ -21,9 +23,9 @@ void feed_data_var(ImuData data, int num_points, int var_mode) {
 
 void main() {
   testWidgets('imu data gravity filter0...', (tester) async {
-    ImuData idat = ImuData(50);
+    ImuData idat = ImuData();
 
-    feed_data_var(idat, 100, 10);
+    feedDataVar(idat, 100, 10);
 
     List lstAcce0 = idat.getAverageAcce();
     print(lstAcce0);
@@ -36,9 +38,9 @@ void main() {
     expect((lstAcce1[0] * 10).toInt(), 0);
   });
   testWidgets('imu data gravity filter1...', (tester) async {
-    ImuData idat = ImuData(50);
+    ImuData idat = ImuData();
 
-    feed_data_var(idat, 100, 1);
+    feedDataVar(idat, 100, 1);
 
     List lstAcce0 = idat.getAverageAcce();
     print(lstAcce0);
